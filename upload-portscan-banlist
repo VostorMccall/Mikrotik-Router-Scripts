@@ -1,0 +1,29 @@
+/ip firewall filter
+add action=add-src-to-address-list address-list=Syn_Flooder address-list-timeout=1h chain=input comment="WAN 1 / Add Syn Flood IP to the list" \
+    connection-limit=30,32 in-interface=WAN1 protocol=tcp tcp-flags=syn
+add action=drop chain=input comment="WAN 1 / Drop to syn flood list" in-interface=WAN1 src-address-list=Syn_Flooder
+add action=add-src-to-address-list address-list=Port_Scanner address-list-timeout=1w chain=input comment="WAN1 / Port Scanner Detect" in-interface=WAN1 \
+    protocol=tcp psd=21,3s,3,1
+add action=drop chain=input comment="WAN 1 / Drop to port scan list" in-interface=WAN1 src-address-list=Port_Scanner
+
+
+
+/system script
+add name=ip_banlist owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source=":foreach key,value in [/ip firewall address-\
+    list find where list=Port_Scanner and dynamic=yes] do={\r\
+    \n    :local list [/ip firewall address-list get \$value list];\r\
+    \n    :local address [/ip firewall address-list get \$value address];\r\
+    \n    /tool fetch url=\"http://[webserver]/banlist/\?address=\$address&list=\$list&server=[reference]\" mode=http keep-result=no\r\
+    \n\r\
+    \n\t}\r\
+    \n\r\
+    \n:foreach key,value in [/ip firewall address-list find where list=Syn_Flooder and dynamic=yes] do={\r\
+    \n    :local list [/ip firewall address-list get \$value list];\r\
+    \n    :local address [/ip firewall address-list get \$value address];\r\
+    \n    /tool fetch url=\"http://[webserver]/banlist/\?address=\$address&list=\$list&server=[reference]\" mode=http keep-result=no\r\
+    \n\r\
+    \n\t}"
+
+/system scheduler
+add interval=30m name=ip_banlist_upload on-event="/system script run ip_banlist" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon \
+    start-date=may/09/2018 start-time=22:00:00
