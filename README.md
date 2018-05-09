@@ -1,2 +1,2 @@
 # Mikrotik-Router-Scripts
-handy tools and scripts for Mikrotik routers
+some fun tools and scripts for mikrotik routerboards.
