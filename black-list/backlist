@@ -1,0 +1,7 @@
+/tool fetch url="[URL]" mode=https dst-path=genlist.rsc;
+
+:log info "Downloaded BlockList";
+/import file-name=genlist.rsc;
+
+:log info "Updated BlockList";
+/file remove genlist.rsc;
