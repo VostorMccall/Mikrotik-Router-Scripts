@@ -1,0 +1,21 @@
+:local DeviceID "";
+:local Location "";
+:local SystemName [/system identity get name];
+:local DeviceSerial [/system routerboard get serial-number];
+:local Model [/system routerboard get model];
+:local RoMONID [/tool romon get current-id];
+:local SystemNote [/system note get note];
+
+/system package update check-for-updates
+:if ([/system package update get installed-version] != [/system package update get latest-version]) do={
+    
+/export file=export
+/tool e-mail send to="support@portal-networks.co.uk" subject="Device:$SystemName - Network Device Update - $Location"\
+body="$SystemName - $[/system clock get date]\r\n\r\nThis router has started it's update process. \r\n\r\nNote: \r\n$SystemNote\r\n\r\nRoMON ID: $RoMONID\r\n\r\nThe content of this email is confidential and intended for the recipient specified in message only. It is strictly forbidden to share any part of this message with any third party, without a written consent of the sender. If you received this message by mistake, please reply to this message and follow with its deletion and contact https://noc.portal-networks.co.uk/report, so that we can ensure such a mistake does not occur in the future." file=export.rsc
+/system package update download
+/log error "Installing Update.."
+/system package update install
+/log error "Update Complete!"
+/system reboot
+
+}
